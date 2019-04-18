@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+</head>
+
+<body>
+    <style>
+        ul#output {
+            padding: 20px;
+            margin: 0;
+            /* text-align: center; */
+            width: 100%;
+            list-style: none;
+        }
+
+        li button {
+            margin-left: 20px;
+        }
+
+        ul#output li>ul {
+            padding: 0;
+        }
+    </style>
+    <div class="container">
+        <div class="row">
+            <div class="text-center" style="    width: 100%;">
+                <h1 class="text-center">Live Amazon Keyword Search</h1>
+            </div>
+        </div>
+        <div class="row">
+            <div class="clearfix"></div>
+            <div class="text-center" style="width: 100%">
+                <form onsubmit="generate();return false;">
+                    <div>
+                        <input id="input" type="text" name="search" />
+                        <input onclick="generate()" value="Generate!" type="button">
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div class="row">
+            <div id="load" style="margin-top: 20px; font-size: 25px; width: 100%; text-align: center">Loading...
+                <br />Please Wait...</div>
+            <ul id="output"></ul>
+        </div>
+    </div>
+
+    <script>
+        jQuery(document).ready(function ($) {
+            $('#load').hide();
+        });
+
+        var inputbox = $("#input");
+        var input = inputbox.val();
+
+        var outputbox = $("#output");
+        var count = 0;
+        var wordList = [];
+        var matchList = [];
+        var lineList = [];
+
+        var alphabet = " abcdefghijklmnopqrstuvwxyz0123456789".split("");
+        var searchParts = ["<li><a href='https://www.amazon.com/s/?field-keywords=", "&tag=publishingwit-20' >",
+            "</a><button class='copy-btn'>Copy</button></li>"
+        ];
+        var amazon =
+            "https://completion.amazon.com/search/complete?search-alias=digital-text&client=amazon-search-ui&mkt=1&q=";
+        var callback = "&callback=?";
+
+        function generate() {
+            $('#load').show();
+            outputbox.empty();
+            input = inputbox.val();
+            wordList = [];
+            matchList = [];
+            lineList = [];
+            // var boldItem = '';
+            var encodedSearchText = '';
+            alphabet.forEach(function (letter) {
+                var searchText = input + " " + letter;
+                encodedSearchText = encodeURIComponent(searchText);
+                $.getJSON(amazon + encodedSearchText + callback,
+                    function (result) {
+                        result[1].forEach(function (item) {
+                            lineList.push(item);
+                            let sItem = item.split(' ');
+                            sItem.forEach(x => {
+                                if (wordList.indexOf(x) >= 0 && matchList.indexOf(x) < 0)
+                                    matchList.push(x);
+                                if (wordList.indexOf(x) < 0) wordList.push(x);
+                            });
+                        });
+                    }
+                    // All Matches found
+                );
+            });
+            $.ajax({});
+        }
+        $(document).ajaxComplete(function (event, xhr, settings) {
+            count++;
+            if (count > 37) {
+                $('#load').hide();
+                lineList.sort().forEach(item => {
+                    let sItem = item.split(' ');
+                    sItem.forEach(function (it, index, arr) {
+                        if (matchList.indexOf(it) > 0) {
+                            arr[index] = '<b>' + it + '</b>';
+                        }
+                    });
+                    outputbox.append(searchParts[0] + encodeURIComponent(item) + searchParts[1] + sItem
+                        .join(' ').replace(input, '<b>' + input + '</b>') +
+                        searchParts[2]);
+                });
+                count = 0;
+                $('.copy-btn').click(function () {
+                    let copyText = this.previousElementSibling.textContent;
+                    let el = document.createElement('textarea');
+                    el.value = copyText;
+                    document.body.appendChild(el);
+                    el.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(el);
+                    this.textContent = 'Coppied';
+                    this.disabled = true;
+                })
+            }
+        });
+    </script>
+</body>
+
+</html>

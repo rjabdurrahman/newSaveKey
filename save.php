@@ -27,7 +27,18 @@ if(isset($_GET['search']))
 if(isset($_GET['copy']))
 {
     $copy_key = $_GET['copy'];
-    mysqli_query($con,"INSERT INTO copied VALUES ('$copy_key', 1)");
+    $previous_copy = mysqli_query($con,"SELECT * FROM copied WHERE keyword = '$copy_key'");
+    if($previous_copy && mysqli_num_rows($previous_copy) > 0)
+    {
+        $previous_copy_count = mysqli_query($con,"SELECT times FROM copied WHERE keyword = '$copy_key'");
+        $copy_count = mysqli_fetch_assoc($previous_copy_count);
+        $new_copy_count = ++$copy_count['times'];
+        mysqli_query($con,"UPDATE copied SET times='$new_copy_count' WHERE keyword = '$copy_key'");
+    }
+    else 
+    {
+        mysqli_query($con,"INSERT INTO copied VALUES ('$copy_key', 1)");
+    }
 }
 
 mysqli_close($con);

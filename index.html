@@ -119,12 +119,23 @@
                 count = 0;
                 $('.copy-btn').click(function () {
                     let copyText = this.previousElementSibling.textContent;
+                    $.getJSON('save.php?copy=' + copyText,
+                        function (result) {
+                            console.log(result);
+                        }
+                    );
+                    console.log('execute');
                     let el = document.createElement('textarea');
                     el.value = copyText;
                     document.body.appendChild(el);
                     el.select();
                     document.execCommand('copy');
                     document.body.removeChild(el);
+                    let allCopyBtn = $('.copy-btn');
+                    for (x in allCopyBtn) {
+                        allCopyBtn[x].textContent = 'Copy';
+                        allCopyBtn[x].disabled = false;
+                    }
                     this.textContent = 'Coppied';
                     this.disabled = true;
                 })
